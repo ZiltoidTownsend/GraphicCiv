@@ -55,6 +55,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\MainConverter.cs" />
+    <Compile Include="Converters\TypeToTypeValueConverter.cs" />
+    <Compile Include="ViewModels\BaseInpc.cs" />
+    <Compile Include="ViewModels\GraphicCivVM.cs" />
+    <Compile Include="ViewModels\PolylinesVM.cs" />
+    <Compile Include="ViewModels\PolylineVM.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -63,7 +69,11 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Classes\CircleData.cs" />
+    <Compile Include="Classes\CirclesData.cs" />
     <Compile Include="Classes\PolygonHex.cs" />
+    <Compile Include="Classes\PolylineData.cs" />
+    <Compile Include="Classes\PolylinesData.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

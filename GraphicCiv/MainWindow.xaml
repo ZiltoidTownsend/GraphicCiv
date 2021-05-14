@@ -3,37 +3,184 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:GraphicCiv"
+        xmlns:local="clr-namespace:GraphicCiv.Classes"
+        xmlns:vm="clr-namespace:GraphicCiv.ViewModels"
+        xmlns:Converters="clr-namespace:GraphicCiv.Converters"
         mc:Ignorable="d"
-        Title="MainWindow" Height="950" Width="1500" Name="MyWindow">
+        Title="MainWindow" Height="950" Width="1500" Name="MyWindow" DataContext="{DynamicResource viewModel}">
 
     <Window.Resources>
-        <ControlTemplate x:Key="ListBoxTemplate" TargetType="ListBox">
-            <Border Name="Border">
-                <ScrollViewer Margin="0"
-                        Focusable="false">
-                    <Canvas IsItemsHost="True" />
-                </ScrollViewer>
-            </Border>
-           
-        </ControlTemplate>
-        <ItemsPanelTemplate x:Key="CanvasPanel">
-            <Canvas ></Canvas>
-        </ItemsPanelTemplate>
+        <vm:GraphicCivVM x:Key="viewModel"/>
+        <Converters:TypeToTypeValueConverter x:Key="ConverterForTypeValue"/>
+        <Converters:MainConverter x:Key="ConverterType"/>
     </Window.Resources>
     <Grid>
-        <ListBox ItemsSource="{Binding Polygons}" ItemsPanel="{StaticResource CanvasPanel}"  DataContext="{Binding ElementName=MyWindow}" Template="{StaticResource ListBoxTemplate}">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <Polygon Stroke="Black" Fill="Aqua" Points="100, 0, 200, 50, 200, 150, 100, 200, 0, 150, 0, 50"></Polygon>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-            <ListBox.ItemContainerStyle>
-                <Style>
-                    <Setter Property="Canvas.Top" Value="{Binding StartPoint.Y}"/>
-                    <Setter Property="Canvas.Left" Value="{Binding StartPoint.X}"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0">
+            <ListBox Background="{x:Null}" ItemsSource="{Binding DataPolylines.Polylines}" SelectedItem="{Binding SelectedPolyline}"
+             ItemContainerStyle="{DynamicResource ListBoxItemStyle.Poligon}">
+            <FrameworkElement.Resources>
+                <Style x:Key="FocusVisual">
+                    <Setter Property="Control.Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Rectangle Margin="2" SnapsToDevicePixels="true"
+                                       Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+                                       StrokeThickness="1" StrokeDashArray="1 2"/>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
                 </Style>
-            </ListBox.ItemContainerStyle>
+                <SolidColorBrush x:Key="Item.MouseOver.Background" Color="#1F26A0DA"/>
+                <SolidColorBrush x:Key="Item.MouseOver.Border" Color="#a826A0Da"/>
+                <SolidColorBrush x:Key="Item.SelectedInactive.Background" Color="#3DDADADA"/>
+                <SolidColorBrush x:Key="Item.SelectedInactive.Border" Color="#FFDADADA"/>
+                <SolidColorBrush x:Key="Item.SelectedActive.Background" Color="#3D26A0DA"/>
+                <SolidColorBrush x:Key="Item.SelectedActive.Border" Color="#FF26A0DA"/>
+                <Style x:Key="ListBoxItemStyle.Poligon" TargetType="{x:Type ListBoxItem}">
+                    <Setter Property="SnapsToDevicePixels" Value="True"/>
+                    <Setter Property="Padding" Value="4,1"/>
+                    <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+                    <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="BorderBrush" Value="Green"/>
+                    <Setter Property="BorderThickness" Value="1"/>
+                    <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisual}"/>
+                    <Setter Property="Canvas.Top" Value="{Binding Top}"/>
+                    <Setter Property="Canvas.Left" Value="{Binding Left}"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                <Polygon x:Name="polygon" Points="{Binding Points}"
+                                     StrokeThickness="{TemplateBinding BorderThickness}"
+                                     Stroke="{TemplateBinding BorderBrush}"
+                                     Fill="{TemplateBinding Background}"/>
+                                <ControlTemplate.Triggers>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsMouseOver" Value="True"/>
+                                        </MultiTrigger.Conditions>
+                                        <Setter Property="Fill" TargetName="polygon" Value="{StaticResource Item.MouseOver.Background}"/>
+                                        <Setter Property="Stroke" TargetName="polygon" Value="{StaticResource Item.MouseOver.Border}"/>
+                                    </MultiTrigger> 
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="Selector.IsSelectionActive" Value="False"/>
+                                            <Condition Property="IsSelected" Value="True"/>
+                                        </MultiTrigger.Conditions>
+                                        <Setter Property="Fill" TargetName="polygon" Value="{StaticResource Item.SelectedInactive.Background}"/>
+                                        <Setter Property="Stroke" TargetName="polygon" Value="{StaticResource Item.SelectedInactive.Border}"/>
+                                    </MultiTrigger>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="Selector.IsSelectionActive" Value="True"/>
+                                            <Condition Property="IsSelected" Value="True"/>
+                                        </MultiTrigger.Conditions>
+                                        <Setter Property="Fill" TargetName="polygon" Value="{StaticResource Item.SelectedActive.Background}"/>
+                                        <Setter Property="Stroke" TargetName="polygon" Value="{StaticResource Item.SelectedActive.Border}"/>
+                                    </MultiTrigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="TextElement.Foreground" TargetName="polygon" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </FrameworkElement.Resources>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Canvas/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
         </ListBox>
+        <!--<ListBox SelectionMode="Multiple" Background="{x:Null}" ItemsSource="{x:Static local:CirclesData.Circles}"
+             ItemContainerStyle="{DynamicResource ListBoxItemStyle.Circle}" Panel.ZIndex="5">
+            <FrameworkElement.Resources>
+                <Style x:Key="FocusVisual">
+                    <Setter Property="Control.Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Rectangle Margin="2" SnapsToDevicePixels="true"
+                                       Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+                                       StrokeThickness="1" StrokeDashArray="1 2"/>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+                <SolidColorBrush x:Key="Item.MouseOver.Background" Color="#1F26A0DA"/>
+                <SolidColorBrush x:Key="Item.MouseOver.Border" Color="#a826A0Da"/>
+                <SolidColorBrush x:Key="Item.SelectedInactive.Background" Color="#3DDADADA"/>
+                <SolidColorBrush x:Key="Item.SelectedInactive.Border" Color="#FFDADADA"/>
+                <SolidColorBrush x:Key="Item.SelectedActive.Background" Color="#3D26A0DA"/>
+                <SolidColorBrush x:Key="Item.SelectedActive.Border" Color="#FF26A0DA"/>
+                <Style x:Key="ListBoxItemStyle.Circle" TargetType="{x:Type ListBoxItem}">
+                    <Setter Property="SnapsToDevicePixels" Value="True"/>
+                    <Setter Property="Padding" Value="4,1"/>
+                    <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+                    <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="BorderBrush" Value="Green"/>
+                    <Setter Property="BorderThickness" Value="1"/>
+                    <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisual}"/>
+                    <Setter Property="Canvas.Top" Value="{Binding Top}"/>
+                    <Setter Property="Canvas.Left" Value="{Binding Left}"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                <Ellipse x:Name="circle" Width="{Binding Radius}" Height="{Binding Radius}"
+                                     StrokeThickness="{TemplateBinding BorderThickness}"
+                                     Stroke="{TemplateBinding BorderBrush}"
+                                     Fill="{TemplateBinding Background}"/>
+                                <ControlTemplate.Triggers>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsMouseOver" Value="True"/>
+                                        </MultiTrigger.Conditions>
+                                        <Setter Property="Fill" TargetName="circle" Value="{StaticResource Item.MouseOver.Background}"/>
+                                        <Setter Property="Stroke" TargetName="circle" Value="{StaticResource Item.MouseOver.Border}"/>
+                                    </MultiTrigger>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="Selector.IsSelectionActive" Value="False"/>
+                                            <Condition Property="IsSelected" Value="True"/>
+                                        </MultiTrigger.Conditions>
+                                        <Setter Property="Fill" TargetName="circle" Value="{StaticResource Item.SelectedInactive.Background}"/>
+                                        <Setter Property="Stroke" TargetName="circle" Value="{StaticResource Item.SelectedInactive.Border}"/>
+                                    </MultiTrigger>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="Selector.IsSelectionActive" Value="True"/>
+                                            <Condition Property="IsSelected" Value="True"/>
+                                        </MultiTrigger.Conditions>
+                                        <Setter Property="Fill" TargetName="circle" Value="{StaticResource Item.SelectedActive.Background}"/>
+                                        <Setter Property="Stroke" TargetName="circle" Value="{StaticResource Item.SelectedActive.Border}"/>
+                                    </MultiTrigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="TextElement.Foreground" TargetName="circle" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </FrameworkElement.Resources>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Canvas/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ListBox>-->
+        </Grid>
+        <Grid Grid.Column="1">
+            <StackPanel>
+                <ComboBox ItemsSource="{Binding Types}" SelectedItem="{Binding SelectedPolyline.Type}" IsReadOnly="True" />
+                <TextBox Text="{Binding SelectedPolyline, Converter={StaticResource ConverterForTypeValue}}"/>
+                <TextBox Text="{Binding SelectedPolyline.Polyline.NeighPolylines.Count, Mode=OneWay}"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

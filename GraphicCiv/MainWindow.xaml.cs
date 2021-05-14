@@ -1,7 +1,10 @@
 ﻿using GraphicCiv.Classes;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -22,14 +25,8 @@ namespace GraphicCiv
     public partial class MainWindow : Window
     {
 
-        public List<PolygonHex> Polygons { get; set; } = new List<PolygonHex>
-        {
-             new PolygonHex {StartPoint = new Point(450, 50)},
-            new PolygonHex {StartPoint = new Point(250, 50) },
-            new PolygonHex {StartPoint = new Point(350, 200) },
+        //public ObservableCollection<CircleData> SelectedCircles = new ObservableCollection<CircleData>();
 
-
-        };
 
         public MainWindow()
         {
@@ -44,7 +41,6 @@ namespace GraphicCiv
             //Polygons.Add(polygon);
             //Polygons.Add(polygonTwo);
 
-            //DataContext = Polygons;
 
         }
     }
